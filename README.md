@@ -51,20 +51,85 @@ Quelques observations sur la réponse de `https://dummyjson.com/products`, qui o
 - **Champs réellement utiles** : sur la trentaine de champs renvoyés par produit, seuls **quatre** sont utiles au jeu : `id`, `title`, `price` et `thumbnail` (l'image). Tout le reste (description, stock, reviews, etc.) est ignoré — le modèle est volontairement minimal.
 - **Nombre de produits** : l'API renvoie 30 produits par défaut. Le jeu en récupère 100 d'un coup au lancement (`?limit=100`) puis pioche dans cette liste à chaque tour. L'API n'est appelée **qu'une seule fois** par partie.
 
-## Lancement
+## Installation et lancement
 
-Prérequis : Flutter installé, un émulateur Android (ou un device physique) fonctionnel. Ou encore un navigateur
+Ce guide part de zéro : il suppose que tu n'as encore rien installé.
+
+### 1. Installer Flutter
+
+Suis le guide officiel pour ton système : <https://docs.flutter.dev/get-started/install>
+
+Une fois l'installation terminée, vérifie qu'elle est correcte en ouvrant un terminal et en tapant :
 
 ```bash
-# Récupérer les dépendances
+flutter doctor
+```
+
+Tu dois voir une liste de coches `[√]`. S'il manque quelque chose (par exemple les licences Android), la commande te l'indique. Pour accepter les licences Android :
+
+```bash
+flutter doctor --android-licenses
+```
+
+### 2. Récupérer le projet
+
+Clone le dépôt, puis place-toi dans le dossier créé :
+
+```bash
+git clone https://github.com/CODEBYGODWIN/plus_ou_moins.git
+cd plus_ou_moins
+```
+
+### 3. Installer les dépendances
+
+```bash
 flutter pub get
+```
 
-# Générer le code Freezed / json_serializable
+### 4. Générer le code
+
+Les fichiers `*.freezed.dart` et `*.g.dart` ne sont **pas** inclus dans le dépôt (ils sont régénérés à la demande). Cette étape est donc **obligatoire** après le clone, sinon le projet ne compile pas :
+
+```bash
 dart run build_runner build
+```
 
-# Lancer l'application (émulateur ou device branché)
+Tu dois voir un message de succès et la création de plusieurs fichiers générés. Si la commande affiche `0 outputs` ou semble bloquée, nettoie puis relance :
+
+```bash
+dart run build_runner clean
+dart run build_runner build
+```
+
+### 5. Préparer un appareil
+
+Il faut un endroit où exécuter l'application. Trois possibilités :
+
+- **Émulateur Android** : ouvre Android Studio → *Device Manager* → crée puis démarre un appareil virtuel. En ligne de commande, tu peux lister tes émulateurs avec `flutter emulators` et en lancer un avec `flutter emulators --launch <id>`.
+- **Téléphone Android physique** : active le *mode développeur* et le *débogage USB* sur ton téléphone, puis branche-le en USB.
+- **Navigateur web (le plus simple pour tester rapidement)** : aucune configuration, Chrome suffit.
+
+Vérifie que ton appareil est bien détecté :
+
+```bash
+flutter devices
+```
+
+### 6. Lancer l'application
+
+```bash
 flutter run
 ```
+
+Si plusieurs appareils sont disponibles, Flutter te demande lequel utiliser. Pour cibler directement un appareil précis (par exemple le navigateur) :
+
+```bash
+flutter run -d chrome
+```
+
+> Astuce : sous VS Code, avec l'extension Flutter installée, tu peux aussi simplement appuyer sur **F5** pour lancer l'application en mode debug.
+
+L'application affiche d'abord un indicateur de chargement, puis le jeu. Amuse-toi bien !
 
 ## Captures d'écran
 
