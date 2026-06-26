@@ -45,11 +45,27 @@ La séparation est stricte :
 
 ## Cadrage de l'API (Partie 1)
 
-Quelques observations sur la réponse de `https://dummyjson.com/products`, qui ont guidé la conception :
+Réponses aux questions de cadrage, après observation de la réponse de `https://dummyjson.com/products`.
 
-- **Structure racine** : la réponse n'est pas une liste de produits directement, mais un **objet** contenant un champ `products` (la liste), accompagné de champs d'information `total`, `skip` et `limit`. Le parsing doit donc lire `json['products']`.
-- **Champs réellement utiles** : sur la trentaine de champs renvoyés par produit, seuls **quatre** sont utiles au jeu : `id`, `title`, `price` et `thumbnail` (l'image). Tout le reste (description, stock, reviews, etc.) est ignoré — le modèle est volontairement minimal.
-- **Nombre de produits** : l'API renvoie 30 produits par défaut. Le jeu en récupère 100 d'un coup au lancement (`?limit=100`) puis pioche dans cette liste à chaque tour. L'API n'est appelée **qu'une seule fois** par partie.
+### Quelle est la structure racine de la réponse ?
+
+C'est un **objet**, pas une liste. Cet objet contient un champ `products` (qui, lui, est la liste des produits), ainsi que trois champs d'information : `total` (le nombre total de produits disponibles, soit 194), `skip` (combien ont été sautés, pour la pagination) et `limit` (combien on en a reçu). Conséquence pour le code : au moment du parsing, il faut lire `json['products']` pour atteindre la liste, et non traiter `json` directement comme une liste.
+
+### Quels champs d'un produit sont réellement utiles ?
+
+Chaque produit renvoie une trentaine de champs, mais le jeu n'affiche qu'un nom, une image et un prix. Seuls **quatre** champs sont donc utiles : `id` (identifiant), `title` (le nom), `price` (le prix, cœur du jeu) et `thumbnail` (l'URL de l'image). Tout le reste — `description`, `category`, `stock`, `rating`, `reviews`, `dimensions`, etc. — est ignoré. Le modèle `Product` est volontairement minimal : un modèle minimal est un bon modèle.
+
+### Combien de produits récupérés d'un coup, et comment éviter de rappeler l'API ?
+
+Par défaut, l'API renvoie 30 produits. Pour permettre des parties plus longues, on en demande 100 d'un coup grâce au paramètre `limit` : `https://dummyjson.com/products?limit=100`. Le point clé : cet appel est fait **une seule fois au démarrage** de la partie. La liste reçue est stockée (le « pool »), et à chaque tour le jeu **pioche dans cette liste déjà en mémoire**. L'API n'est donc jamais rappelée entre les tours, ce qui rend le jeu fluide et économe en réseau.
+
+### Où placer l'appel réseau, la logique gagné/perdu, l'affichage ?
+
+Trois couches distinctes, chacune avec une seule responsabilité :
+
+- **L'appel réseau** → dans un **service** (`product_api.dart`) : il va chercher le JSON et le transforme en liste de produits, sans rien connaître du jeu.
+- **La logique « le joueur a gagné/perdu »** → dans un **contrôleur** (`game_controller.dart`, avec Riverpod) : c'est là que les prix sont comparés, que le score évolue, que le produit suivant est tiré, et que le game over est décidé.
+- **L'affichage** → dans les **widgets** (`game_screen.dart`) : ils lisent l'état et envoient des intentions (`guessHigher`, `guessLower`), sans jamais effectuer eux-mêmes le moindre calcul.
 
 ## Installation et lancement
 
